@@ -1,0 +1,13 @@
+- User Device (or FE): still communicates with Backend services via Rest API, I think we should reduce the scope of change of FE (communication interface and technical stack)
+- Separate Backend monolith architecture style into microservice by services:
+	- Person Service - communication methods
+		- Rest API to communicate with FE
+		- gRPC to handle internal requests from Connection Service
+	- Connection Service - communication methods:
+		- Rest API to communicate with FE
+		- gRPC to send internal requests from Person Service
+	- Location Service - communication methods:
+		- Rest API to communicate with FE
+		- Kafka publisher to send message to Kafka, because users send location data to Backend highly frequence so we should redirect the data to Kafka TOPIC to prevent losing message or stress Backend.
+	- Location Service - communication methods:
+		- Kafka consummer, subscribes Kafka TOPIC and save the messages into database.
