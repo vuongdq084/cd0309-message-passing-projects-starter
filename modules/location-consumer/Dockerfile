@@ -10,6 +10,4 @@ EXPOSE 5000
 
 COPY . .
 
-#RUN python -m grpc_tools.protoc -I./ --python_out=./ --grpc_python_out=./ person.proto
-
-CMD ["flask", "run", "--host", "0.0.0.0"]
+CMD ["python", "consumer.py"]

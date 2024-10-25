@@ -1,5 +1,5 @@
 import logging
-import requests
+# import requests
 from datetime import datetime, timedelta
 from typing import Dict, List
 
@@ -8,6 +8,13 @@ from app.udaconnect.models import Connection, Location, Person
 from app.udaconnect.schemas import ConnectionSchema, LocationSchema, PersonSchema
 from geoalchemy2.functions import ST_AsText, ST_Point
 from sqlalchemy.sql import text
+
+#start mod
+from flask import current_app
+import grpc
+import person_pb2
+import person_pb2_grpc
+#end mod
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("udaconnect-api")
@@ -136,24 +143,24 @@ class PersonServiceClient:
         #return db.session.query(Person).all()
 
         #CALL VIA RESTFul
-        response = requests.get("http://person:5000/api/persons")
-        response.raise_for_status()
-        person_dicts = response.json() 
-        persons = [Person(**person_dict) for person_dict in person_dicts]
+        #response = requests.get("http://person:5000/api/persons")
+        #response.raise_for_status()
+        #person_dicts = response.json() 
+        #persons = [Person(**person_dict) for person_dict in person_dicts]
 
         #CALL VIA gRPC
-        #with grpc.insecure_channel('person:5002') as channel:
-        #    stub = person_pb2_grpc.PersonServiceStub(channel)
-        #    response = stub.Get(person_pb2.Empty())
+        with grpc.insecure_channel('person:5002') as channel:
+            stub = person_pb2_grpc.PersonServiceStub(channel)
+            response = stub.Get(person_pb2.Empty())
         
-        ##persons = [Person(id=person.id, first_name=person.first_name, last_name=person.last_name, company_name=person.company_name) for person in response.orders]
-        #with current_app.app_context():
-        #    persons = [
-        #        Person(
-        #            id=person.id, 
-        #            first_name=person.first_name, 
-        #            last_name=person.last_name, 
-        #            company_name=person.company_name
-        #        ) for person in response.orders
-        #    ]
+        #persons = [Person(id=person.id, first_name=person.first_name, last_name=person.last_name, company_name=person.company_name) for person in response.orders]
+        with current_app.app_context():
+            persons = [
+                Person(
+                    id=person.id, 
+                    first_name=person.first_name, 
+                    last_name=person.last_name, 
+                    company_name=person.company_name
+                ) for person in response.orders
+            ]
         return persons

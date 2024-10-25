@@ -25,7 +25,53 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - db  # Đảm bảo API khởi động sau khi database đã sẵn sàng
+      - db
+      - person
+  person:
+    build:
+      context: ./modules/person
+      dockerfile: Dockerfile
+    container_name: person
+    environment:
+      DB_USERNAME: ct_admin
+      DB_PASSWORD: Abc12345
+      DB_NAME: geoconnections
+      DB_HOST: db
+      DB_PORT: 5432
+    ports:
+      - "5001:5000"
+    depends_on:
+      - db
+
+  location:
+    build:
+      context: ./modules/location
+      dockerfile: Dockerfile
+    container_name: location
+    environment:
+      DB_USERNAME: ct_admin
+      DB_PASSWORD: Abc12345
+      DB_NAME: geoconnections
+      DB_HOST: db
+      DB_PORT: 5432
+    ports:
+      - "5002:5000"
+    depends_on:
+      - kafka
+
+  #location-consumer:
+  #  build:
+  #    context: ./modules/location-consumer
+  #    dockerfile: Dockerfile
+  #  container_name: location-consumer
+  #  environment:
+  #    DB_USERNAME: ct_admin
+  #    DB_PASSWORD: Abc12345
+  #    DB_NAME: geoconnections
+  #    DB_HOST: db
+  #    DB_PORT: 5432    
+  #  depends_on:
+  #    - kafka
   db:
     image: postgis/postgis:12-2.5-alpine
     container_name: postgres
@@ -37,3 +83,24 @@ services:
       - "5432:5432"
     volumes:
       - ./db-data:/var/lib/postgresql/data  # Map thư mục ./db-data trong thư mục hiện tại
+
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+  
+  kafka:
+    image: wurstmeister/kafka:2.13-2.6.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "9091:9091"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9091,OUTSIDE://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:9091,OUTSIDE://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+    depends_on:
+      - zookeeper
