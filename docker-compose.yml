@@ -9,13 +9,13 @@ services:
       - "3000:3000"
     depends_on:
       - db
-      - api  # Đảm bảo frontend khởi động sau khi API đã sẵn sàng
+      - connection
 
-  api:
+  connection:
     build:
-      context: ./modules/api
+      context: ./modules/connection
       dockerfile: Dockerfile
-    container_name: api
+    container_name: connection
     environment:
       DB_USERNAME: ct_admin
       DB_PASSWORD: Abc12345

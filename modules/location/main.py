@@ -9,9 +9,15 @@ import location_pb2_grpc
 from kafka import KafkaProducer
 import json
 from datetime import datetime
+import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("udaconnect-location")
+
+#TOPIC_NAME = 'UDACONNECT_LOCATION'
+#KAFKA_SERVER = 'kafka:9092'
+KAFKA_SERVER = os.environ["KAFKA_SERVER"]
+TOPIC_NAME = os.environ["TOPIC_NAME"]
 
 class LocationServicer(location_pb2_grpc.LocationServiceServicer):
     def Create(self, request, context):
@@ -26,13 +32,8 @@ class LocationServicer(location_pb2_grpc.LocationServiceServicer):
         }
         print(request_value)
         logger.info("Request data: %s", request_value)
-        
+        logger.info("SENDING TO KAFKA WITH: SERVER - %s - TOPIC: %s", KAFKA_SERVER, TOPIC_NAME)
 
-        logger.info("SENDING TO KAFKA")
-        TOPIC_NAME = 'UDACONNECT_LOCATION'
-        KAFKA_SERVER = 'kafka:9092'
-
-        #producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER)
         producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER, value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
         producer.send(TOPIC_NAME, request_value)

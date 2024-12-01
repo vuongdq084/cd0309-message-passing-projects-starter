@@ -76,29 +76,40 @@ Type `exit` to exit the virtual OS and you will find yourself back in your compu
 Afterwards, you can test that `kubectl` works by running a command like `kubectl describe services`. It should not return any errors.
 
 ### Steps
-1. `kubectl apply -f deployment/db-configmap.yaml` - Set up environment variables for the pods
-2. `kubectl apply -f deployment/db-secret.yaml` - Set up secrets for the pods
-3. `kubectl apply -f deployment/postgres.yaml` - Set up a Postgres database running PostGIS
-4. `kubectl apply -f deployment/udaconnect-api.yaml` - Set up the service and deployment for the API
-5. `kubectl apply -f deployment/udaconnect-app.yaml` - Set up the service and deployment for the web app
-6. `sh scripts/run_db_command.sh <POD_NAME>` - Seed your database against the `postgres` pod. (`kubectl get pods` will give you the `POD_NAME`)
+1. `kubectl apply -f deployment/kafka-configmap.yaml` - Set up kafka environment variables for the pods 
+2. `kubectl apply -f deployment/db-configmap.yaml` - Set up database environment variables for the pods
+3. `kubectl apply -f deployment/db-secret.yaml` - Set up secrets for the pods
+4. `kubectl apply -f deployment/postgres.yaml` - Set up a Postgres database running PostGIS
+5. `kubectl apply -f deployment/zookeeper.yaml` - Set up an instance of zookeeper
+6. `kubectl apply -f deployment/kafka.yaml` - Set up an instance of kafka message broker
+7. `kubectl apply -f deployment/udaconnect-person.yaml` - Set up the service and deployment for the person service
+8. `kubectl apply -f deployment/udaconnect-connection.yaml` - Set up the service and deployment for the connection service
+9. `kubectl apply -f deployment/udaconnect-location.yaml` - Set up the service and deployment for the location service
+10. `kubectl apply -f deployment/udaconnect-location-consumer.yaml` - Set up the service and deployment for the location consumer
+11. `kubectl apply -f deployment/udaconnect-frontend.yaml` - Set up the service and deployment for the frontend application
+12. `sh scripts/run_db_command.sh <POD_NAME>` - Seed your database against the `postgres` pod. (`kubectl get pods` will give you the `POD_NAME`)
 
 Manually applying each of the individual `yaml` files is cumbersome but going through each step provides some context on the content of the starter project. In practice, we would have reduced the number of steps by running the command against a directory to apply of the contents: `kubectl apply -f deployment/`.
 
 Note: The first time you run this project, you will need to seed the database with dummy data. Use the command `sh scripts/run_db_command.sh <POD_NAME>` against the `postgres` pod. (`kubectl get pods` will give you the `POD_NAME`). Subsequent runs of `kubectl apply` for making changes to deployments or services shouldn't require you to seed the database again!
 
 ### Verifying it Works
-Once the project is up and running, you should be able to see 3 deployments and 3 services in Kubernetes:
-`kubectl get pods` and `kubectl get services` - should both return `udaconnect-app`, `udaconnect-api`, and `postgres`
+Run `kubectl get pods` and verify the number of pods & name the following image (the prefix of names must be same)
+![kubectl get pods](docs/pods_screenshot.png)
+
+ and `kubectl get services` and verify the services as following image
+ ![kubectl get services](docs/services_screenshot.png)
 
 
 These pages should also load on your web browser:
-* `http://localhost:30001/` - OpenAPI Documentation
-* `http://localhost:30001/api/` - Base path for API
+* `http://localhost:30001/` - OpenAPI Documentation for Person service
+* `http://localhost:30001/api/` - Base path for API for Person service
+* `http://localhost:30002/` - OpenAPI Documentation for Connection service
+* `http://localhost:30002/api/` - Base path for API for Connection service
 * `http://localhost:30000/` - Frontend ReactJS Application
 
 #### Deployment Note
-You may notice the odd port numbers being served to `localhost`. [By default, Kubernetes services are only exposed to one another in an internal network](https://kubernetes.io/docs/concepts/services-networking/service/). This means that `udaconnect-app` and `udaconnect-api` can talk to one another. For us to connect to the cluster as an "outsider", we need to a way to expose these services to `localhost`.
+You may notice the odd port numbers being served to `localhost`. [By default, Kubernetes services are only exposed to one another in an internal network](https://kubernetes.io/docs/concepts/services-networking/service/). This means that services (backend to backend, frontend to backend) can talk to one another. For us to connect to the cluster as an "outsider", we need to a way to expose these services to `localhost`.
 
 Connections to the Kubernetes services have been set up through a [NodePort](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport). (While we would use a technology like an [Ingress Controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) to expose our Kubernetes services in deployment, a NodePort will suffice for development.)
 
@@ -113,7 +124,11 @@ As a reminder, each module should have:
 4. `__init__.py`
 
 ### Docker Images
-`udaconnect-app` and `udaconnect-api` use docker images from `udacity/nd064-udaconnect-app` and `udacity/nd064-udaconnect-api`. To make changes to the application, build your own Docker image and push it to your own DockerHub repository. Replace the existing container registry path with your own.
+- Frontend: vuongdq2503/udaconnect-frontend
+- Connection Service: vuongdq2503/udaconnect-connection
+- Location Consumer: vuongdq2503/udaconnect-location-consumer
+- Person Service: vuongdq2503/udaconnect-person
+- Location Service: vuongdq2503/udaconnect-location
 
 ## Configs and Secrets
 In `deployment/db-secret.yaml`, the secret variable is `d293aW1zb3NlY3VyZQ==`. The value is simply encoded and not encrypted -- this is ***not*** secure! Anyone can decode it to see what it is.

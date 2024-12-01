@@ -1,13 +1,16 @@
-- User Device (or FE): still communicates with Backend services via Rest API, I think we should reduce the scope of change of FE (communication interface and technical stack)
+I- ANALYSING
+1-Client Side:
+	- User Device: sends location data with a very high frequency when the user is constantly moving
+	- Frontend Web: just need to request static data at rest.
+2-Server Side:
+	- Storing location data must be prioritized for fast reception and transmission, and data loss must be avoided at all costs.
+	- Person and Connection belong to two different business domains. Person is master data that changes less frequently, while Connection is transactional data.\
+
+II-DECISION
 - Separate Backend monolith architecture style into microservice by services:
-	- Person Service - communication methods
-		- Rest API to communicate with FE
-		- gRPC to handle internal requests from Connection Service
-	- Connection Service - communication methods:
-		- Rest API to communicate with FE
-		- gRPC to send internal requests from Person Service
-	- Location Service - communication methods:
-		- Rest API to communicate with FE
-		- Kafka publisher to send message to Kafka, because users send location data to Backend highly frequence so we should redirect the data to Kafka TOPIC to prevent losing message or stress Backend.
-	- Location Service - communication methods:
-		- Kafka consummer, subscribes Kafka TOPIC and save the messages into database.
+	- Location Service: Receives data via gRPC to optimize communication speed, the push the record to message broker (Kafka topic) to avoid losing data with a high loading.
+	- Kafka TOPIC: a component of kafka, to hold interim data between service
+	- Location consummer - a consumer, polls data from the TOPIC and writes to Database
+	- Person Service - a service which manages person data, expose RestAPI method for FrontEnd and Connection Service to access
+	- Location Service - a service provice connection data of person via RestAPI methods.
+		

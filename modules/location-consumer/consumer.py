@@ -2,15 +2,24 @@ from kafka import KafkaConsumer
 from sqlalchemy import create_engine, text
 import json
 import logging
+import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("location-conumser")
 
-TOPIC_NAME = 'UDACONNECT_LOCATION'
-KAFKA_SERVER = 'kafka:9092'
+#TOPIC_NAME = 'UDACONNECT_LOCATION'
+#KAFKA_SERVER = 'kafka:9092'
+KAFKA_SERVER = os.environ["KAFKA_SERVER"]
+TOPIC_NAME = os.environ["TOPIC_NAME"]
+
+DB_USERNAME = os.environ["DB_USERNAME"]
+DB_PASSWORD = os.environ["DB_PASSWORD"]
+DB_HOST = os.environ["DB_HOST"]
+DB_PORT = os.environ["DB_PORT"]
+DB_NAME = os.environ["DB_NAME"]
 
 # Set up the database engine
-DATABASE_URI = 'postgresql://ct_admin:Abc12345@postgres:5432/geoconnections'
+DATABASE_URI = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 engine = create_engine(DATABASE_URI)
 
 # Initialize Kafka consumer
